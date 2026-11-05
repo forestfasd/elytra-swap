@@ -15,7 +15,6 @@ import net.minecraft.world.inventory.ContainerInput;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.enchantment.EnchantmentEffectComponents;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
-import org.lwjgl.glfw.GLFW;
 
 /**
  * One key: put the best elytra from your inventory into your chest slot.
@@ -33,6 +32,9 @@ public class ElytraSwapClient implements ClientModInitializer {
 	// (SWAP buttons 0-8 = hotbar slots).
 	private static final int OFFHAND_INV_INDEX = 40;
 
+	// 26.3 uses SDL scancodes for keys; 53 = the ` (grave accent) key.
+	private static final int KEY_GRAVE_ACCENT = 53;
+
 	private static KeyMapping swapKey;
 
 	@Override
@@ -42,8 +44,8 @@ public class ElytraSwapClient implements ClientModInitializer {
 
 		swapKey = KeyMappingHelper.registerKeyMapping(new KeyMapping(
 				"key.elytraswap.swap",
-				InputConstants.Type.KEYSYM,
-				GLFW.GLFW_KEY_GRAVE_ACCENT, // change it in Options > Controls > Key Binds
+				InputConstants.Type.KEYBOARD,
+				KEY_GRAVE_ACCENT, // change it in Options > Controls > Key Binds
 				category));
 
 		ClientTickEvents.END_CLIENT_TICK.register(ElytraSwapClient::onTick);
