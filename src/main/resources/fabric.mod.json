@@ -1,0 +1,19 @@
+{
+	"schemaVersion": 1,
+	"id": "elytraswap",
+	"version": "${version}",
+	"name": "Elytra Swap",
+	"description": "Press one key to put an elytra in your chest slot, swapping out whatever is there.",
+	"authors": ["baglady060"],
+	"license": "MIT",
+	"environment": "client",
+	"entrypoints": {
+		"client": ["dev.elytraswap.ElytraSwapClient"]
+	},
+	"depends": {
+		"fabricloader": ">=0.19.3",
+		"minecraft": "~26.3",
+		"java": ">=25",
+		"fabric-api": "*"
+	}
+}
