@@ -15,11 +15,11 @@ import net.minecraft.world.inventory.ContainerInput;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.enchantment.EnchantmentEffectComponents;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
+import net.minecraft.world.item.equipment.Equippable;
 
 /**
- * One key: put the best elytra from your inventory into your chest slot.
- * Whatever was in the chest slot goes to where the elytra was.
- * It never takes an elytra off - it only ever puts one on.
+ * One key toggles your chest slot between an elytra and a chestplate.
+ * Whatever was in the chest slot goes to where the new item came from.
  */
 public class ElytraSwapClient implements ClientModInitializer {
 
@@ -36,6 +36,9 @@ public class ElytraSwapClient implements ClientModInitializer {
 	private static final int KEY_GRAVE_ACCENT = 53;
 
 	private static KeyMapping swapKey;
+
+	// Where the chestplate went when we last put an elytra on (-1 = unknown).
+	private static int lastChestplateIndex = -1;
 
 	@Override
 	public void onInitializeClient() {
@@ -57,10 +60,14 @@ public class ElytraSwapClient implements ClientModInitializer {
 		// Drain extra presses queued this tick so one tick = at most one swap.
 		while (swapKey.consumeClick()) { }
 
-		equipElytra(mc);
+		toggle(mc);
 	}
 
-	private static void equipElytra(Minecraft mc) {
+	/**
+	 * Wearing an elytra -> put a chestplate back on.
+	 * Anything else (chestplate, other item, nothing) -> put the best elytra on.
+	 */
+	private static void toggle(Minecraft mc) {
 		LocalPlayer player = mc.player;
 		if (player == null || mc.gameMode == null) return;
 		if (player.isDeadOrDying() || player.isSpectator()) return;
@@ -75,13 +82,23 @@ public class ElytraSwapClient implements ClientModInitializer {
 			return;
 		}
 
-		int invIndex = findBestElytra(player.getInventory());
-		if (invIndex < 0) return;
+		Inventory inv = player.getInventory();
 
-		// Already wearing a working elytra? Leave it alone.
-		// (If the worn one is about to break, swap in a fresh one.)
-		if (isElytra(worn) && !worn.nextDamageWillBreak()) return;
+		if (isElytra(worn)) {
+			int chest = findChestplate(inv);
+			if (chest >= 0) swapIntoChest(mc, player, chest);
+		} else {
+			int elytra = findBestElytra(inv);
+			if (elytra >= 0) {
+				swapIntoChest(mc, player, elytra);
+				// The old chest item now sits where the elytra was.
+				lastChestplateIndex = elytra;
+			}
+		}
+	}
 
+	/** Swap the item at this inventory index with the chest slot. */
+	private static void swapIntoChest(Minecraft mc, LocalPlayer player, int invIndex) {
 		int containerId = player.inventoryMenu.containerId;
 
 		if (invIndex < 9 || invIndex == OFFHAND_INV_INDEX) {
@@ -90,11 +107,37 @@ public class ElytraSwapClient implements ClientModInitializer {
 					ContainerInput.SWAP, player);
 		} else {
 			// Main inventory (inventory index 9-35 == menu slot 9-35):
-			// pick up elytra, drop it on the chest slot, put the old item back.
+			// pick it up, drop it on the chest slot, put the old item back.
 			mc.gameMode.handleContainerInput(containerId, invIndex, 0, ContainerInput.PICKUP, player);
 			mc.gameMode.handleContainerInput(containerId, MENU_CHEST_SLOT, 0, ContainerInput.PICKUP, player);
 			mc.gameMode.handleContainerInput(containerId, invIndex, 0, ContainerInput.PICKUP, player);
 		}
+	}
+
+	/**
+	 * The chestplate to put back on: the one this mod took off last time if it's
+	 * still in the same slot, otherwise the first chestplate found
+	 * (main inventory, then offhand, then hotbar).
+	 */
+	private static int findChestplate(Inventory inv) {
+		if (lastChestplateIndex >= 0 && isChestplate(inv.getItem(lastChestplateIndex))) {
+			return lastChestplateIndex;
+		}
+		for (int i = 9; i < 36; i++) {
+			if (isChestplate(inv.getItem(i))) return i;
+		}
+		if (isChestplate(inv.getItem(OFFHAND_INV_INDEX))) return OFFHAND_INV_INDEX;
+		for (int i = 0; i < 9; i++) {
+			if (isChestplate(inv.getItem(i))) return i;
+		}
+		return -1;
+	}
+
+	/** Anything worn in the chest slot that isn't a glider. */
+	private static boolean isChestplate(ItemStack stack) {
+		if (stack.isEmpty() || isElytra(stack)) return false;
+		Equippable eq = stack.get(DataComponents.EQUIPPABLE);
+		return eq != null && eq.slot() == EquipmentSlot.CHEST;
 	}
 
 	/** Usable elytra with the most durability left, or -1 if none. */

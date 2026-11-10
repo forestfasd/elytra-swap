@@ -1,11 +1,10 @@
 # Elytra Swap (Fabric, Minecraft 26.3)
 
-Press one key to put an elytra in your chest slot. Whatever was there (chestplate or anything else) goes to the slot the elytra came from.
+Press one key to toggle your chest slot between an elytra and a chestplate.
 
-- Only ever **equips** an elytra. It never takes one off.
-- Picks the elytra with the most durability left, and skips broken ones.
-- If you're already wearing a working elytra, the key does nothing. If yours is about to break, it swaps in a fresh one.
-- Elytra in your hotbar or offhand: one packet. Elytra in your main inventory: three clicks.
+- Wearing a chestplate (or anything else, or nothing): it puts on your best elytra (most durability left, never a broken one). The old item goes where the elytra was.
+- Wearing an elytra: it puts your chestplate back on. It picks the one it took off last time if it's still in the same slot, otherwise the first chestplate it finds.
+- Item in your hotbar or offhand: one packet. Item in your main inventory: three clicks.
 - Works with modded gliders too (anything with the vanilla `glider` component).
 - Default key: **`** (grave accent). Change it under Options > Controls > Key Binds > "Elytra Swap".
 - Client-side only. Requires **Fabric API**.

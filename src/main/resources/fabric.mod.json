@@ -3,7 +3,7 @@
 	"id": "elytraswap",
 	"version": "${version}",
 	"name": "Elytra Swap",
-	"description": "Press one key to put an elytra in your chest slot, swapping out whatever is there.",
+	"description": "Press one key to toggle between an elytra and a chestplate.",
 	"authors": ["baglady060"],
 	"license": "MIT",
 	"environment": "client",
